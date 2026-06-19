@@ -1,6 +1,13 @@
 import { useState } from 'react';
 import Icon from '@/components/ui/icon';
 import { Button } from '@/components/ui/button';
+import Reader, { ReaderBook } from '@/components/Reader';
+
+const SAMPLE_PAGES = [
+  `Она нашла переписку случайно — телефон вибрировал на кухонном столе, пока он принимал душ.\n\nОдно сообщение. Потом второе. Имя, которого она не знала, и слова, которых не должно было быть.\n\nМир, который казался таким прочным, треснул за одну секунду — тихо, без единого звука.`,
+  `— Нам нужно поговорить, — сказала она вечером, когда он вернулся.\n\nОн поднял глаза, и в них она прочитала всё, что боялась узнать. Ни удивления, ни вины. Только усталость человека, которого наконец разоблачили.\n\n— Я знаю, — ответил он. И это было страшнее любых объяснений.`,
+  `Развод оформили за три месяца. Подписи, печати, чужие коридоры суда.\n\nНо настоящий развод случился раньше — в тот вечер, на кухне, когда она поняла, что больше не узнаёт человека напротив.\n\nА впереди была новая жизнь. И, как ни странно, она уже не боялась её.`,
+];
 
 const COVER_1 = 'https://cdn.poehali.dev/projects/3d80046f-2d76-4ad3-85e1-f53054f91634/files/25ba1d57-66bc-4495-9067-16fa109f3d06.jpg';
 const COVER_2 = 'https://cdn.poehali.dev/projects/3d80046f-2d76-4ad3-85e1-f53054f91634/files/77b30b79-d4c0-428a-85f5-9202008b4c74.jpg';
@@ -26,6 +33,9 @@ const REVIEWS = [
 const Index = () => {
   const [cart, setCart] = useState<number[]>([]);
   const addToCart = (id: number) => setCart((c) => (c.includes(id) ? c : [...c, id]));
+  const [reading, setReading] = useState<ReaderBook | null>(null);
+  const openReader = (book: typeof BOOKS[number]) =>
+    setReading({ title: book.title, author: book.author, pages: SAMPLE_PAGES });
 
   return (
     <div className="min-h-screen bg-background text-foreground grain overflow-x-hidden">
@@ -112,7 +122,7 @@ const Index = () => {
           </p>
           <div className="grid sm:grid-cols-3 gap-6">
             {BOOKS.slice(0, 3).map((b) => (
-              <BookCard key={b.id} book={b} onAdd={addToCart} inCart={cart.includes(b.id)} />
+              <BookCard key={b.id} book={b} onAdd={addToCart} inCart={cart.includes(b.id)} onRead={openReader} />
             ))}
           </div>
         </div>
@@ -131,7 +141,7 @@ const Index = () => {
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {BOOKS.map((b) => (
-            <BookCard key={b.id} book={b} onAdd={addToCart} inCart={cart.includes(b.id)} />
+            <BookCard key={b.id} book={b} onAdd={addToCart} inCart={cart.includes(b.id)} onRead={openReader} />
           ))}
         </div>
       </section>
@@ -217,11 +227,13 @@ const Index = () => {
           © 2026 Излом. Все права защищены.
         </div>
       </footer>
+
+      {reading && <Reader book={reading} onClose={() => setReading(null)} />}
     </div>
   );
 };
 
-function BookCard({ book, onAdd, inCart }: { book: typeof BOOKS[number]; onAdd: (id: number) => void; inCart: boolean }) {
+function BookCard({ book, onAdd, inCart, onRead }: { book: typeof BOOKS[number]; onAdd: (id: number) => void; inCart: boolean; onRead: (book: typeof BOOKS[number]) => void }) {
   return (
     <div className="group rounded-2xl border border-border bg-card overflow-hidden hover-lift">
       <div className="relative aspect-[3/4] overflow-hidden">
@@ -236,7 +248,7 @@ function BookCard({ book, onAdd, inCart }: { book: typeof BOOKS[number]; onAdd: 
       <div className="p-5">
         <div className="text-xs text-muted-foreground mb-1">{book.author}</div>
         <h3 className="font-display text-2xl font-semibold leading-tight mb-3">{book.title}</h3>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-3">
           <div className="flex items-baseline gap-2">
             <span className="text-xl font-bold">{book.price} ₽</span>
             {book.old > 0 && <span className="text-sm text-muted-foreground line-through">{book.old} ₽</span>}
@@ -249,6 +261,14 @@ function BookCard({ book, onAdd, inCart }: { book: typeof BOOKS[number]; onAdd: 
             <Icon name={inCart ? 'Check' : 'Plus'} size={16} />
           </Button>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => onRead(book)}
+          className="w-full rounded-full border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground"
+        >
+          <Icon name="BookOpen" size={16} className="mr-2" /> Читать отрывок
+        </Button>
       </div>
     </div>
   );
