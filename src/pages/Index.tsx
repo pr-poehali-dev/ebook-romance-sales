@@ -7,6 +7,9 @@ const SAMPLE_PAGES = [
   `Она нашла переписку случайно — телефон вибрировал на кухонном столе, пока он принимал душ.\n\nОдно сообщение. Потом второе. Имя, которого она не знала, и слова, которых не должно было быть.\n\nМир, который казался таким прочным, треснул за одну секунду — тихо, без единого звука.`,
   `— Нам нужно поговорить, — сказала она вечером, когда он вернулся.\n\nОн поднял глаза, и в них она прочитала всё, что боялась узнать. Ни удивления, ни вины. Только усталость человека, которого наконец разоблачили.\n\n— Я знаю, — ответил он. И это было страшнее любых объяснений.`,
   `Развод оформили за три месяца. Подписи, печати, чужие коридоры суда.\n\nНо настоящий развод случился раньше — в тот вечер, на кухне, когда она поняла, что больше не узнаёт человека напротив.\n\nА впереди была новая жизнь. И, как ни странно, она уже не боялась её.`,
+  `Первые недели после развода она называла «белыми» — не потому что светлыми, а потому что пустыми.\n\nКвартира, которую они делили семь лет, казалась чужой. Его кофейная кружка на полке. Его книги. Его запах на подушке — или ей только казалось?\n\nОна убрала всё в коробки за один день. Это было больнее, чем подпись на документах.`,
+  `Подруга сказала: «Ты наконец свободна». Наташа не знала, что ответить.\n\nСвобода пахла пустотой и остывшим чаем. Свобода — это когда некому рассказать, что приснилось ночью.\n\nНо потом пришло утро. Настоящее утро — первое, которое принадлежало только ей.`,
+  `Он позвонил через два месяца. Номер высветился на экране — и она поняла, что не хочет брать трубку.\n\nНе из злости. Просто — не хочет.\n\nЭто было первым признаком того, что она начинает выздоравливать.`,
 ];
 
 const COVER_1 = 'https://cdn.poehali.dev/projects/3d80046f-2d76-4ad3-85e1-f53054f91634/files/25ba1d57-66bc-4495-9067-16fa109f3d06.jpg';
@@ -33,9 +36,19 @@ const REVIEWS = [
 const Index = () => {
   const [cart, setCart] = useState<number[]>([]);
   const addToCart = (id: number) => setCart((c) => (c.includes(id) ? c : [...c, id]));
-  const [reading, setReading] = useState<ReaderBook | null>(null);
+  const [purchased, setPurchased] = useState<number[]>([]);
+  const [reading, setReading] = useState<{ book: ReaderBook; id: number } | null>(null);
+
   const openReader = (book: typeof BOOKS[number]) =>
-    setReading({ title: book.title, author: book.author, pages: SAMPLE_PAGES });
+    setReading({
+      id: book.id,
+      book: { title: book.title, author: book.author, price: book.price, pages: SAMPLE_PAGES, freePages: 2 },
+    });
+
+  const handleBuy = (id: number) => {
+    setPurchased((p) => (p.includes(id) ? p : [...p, id]));
+    addToCart(id);
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground grain overflow-x-hidden">
@@ -122,7 +135,7 @@ const Index = () => {
           </p>
           <div className="grid sm:grid-cols-3 gap-6">
             {BOOKS.slice(0, 3).map((b) => (
-              <BookCard key={b.id} book={b} onAdd={addToCart} inCart={cart.includes(b.id)} onRead={openReader} />
+              <BookCard key={b.id} book={b} onAdd={addToCart} inCart={cart.includes(b.id)} onRead={openReader} purchased={purchased.includes(b.id)} />
             ))}
           </div>
         </div>
@@ -141,7 +154,7 @@ const Index = () => {
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {BOOKS.map((b) => (
-            <BookCard key={b.id} book={b} onAdd={addToCart} inCart={cart.includes(b.id)} onRead={openReader} />
+            <BookCard key={b.id} book={b} onAdd={addToCart} inCart={cart.includes(b.id)} onRead={openReader} purchased={purchased.includes(b.id)} />
           ))}
         </div>
       </section>
@@ -228,12 +241,19 @@ const Index = () => {
         </div>
       </footer>
 
-      {reading && <Reader book={reading} onClose={() => setReading(null)} />}
+      {reading && (
+        <Reader
+          book={reading.book}
+          purchased={purchased.includes(reading.id)}
+          onClose={() => setReading(null)}
+          onBuy={() => handleBuy(reading.id)}
+        />
+      )}
     </div>
   );
 };
 
-function BookCard({ book, onAdd, inCart, onRead }: { book: typeof BOOKS[number]; onAdd: (id: number) => void; inCart: boolean; onRead: (book: typeof BOOKS[number]) => void }) {
+function BookCard({ book, onAdd, inCart, onRead, purchased }: { book: typeof BOOKS[number]; onAdd: (id: number) => void; inCart: boolean; onRead: (book: typeof BOOKS[number]) => void; purchased: boolean }) {
   return (
     <div className="group rounded-2xl border border-border bg-card overflow-hidden hover-lift">
       <div className="relative aspect-[3/4] overflow-hidden">
@@ -265,9 +285,10 @@ function BookCard({ book, onAdd, inCart, onRead }: { book: typeof BOOKS[number];
           variant="outline"
           size="sm"
           onClick={() => onRead(book)}
-          className="w-full rounded-full border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground"
+          className={`w-full rounded-full ${purchased ? 'border-accent/40 text-accent hover:bg-accent hover:text-accent-foreground' : 'border-primary/40 text-primary hover:bg-primary hover:text-primary-foreground'}`}
         >
-          <Icon name="BookOpen" size={16} className="mr-2" /> Читать отрывок
+          <Icon name="BookOpen" size={16} className="mr-2" />
+          {purchased ? 'Читать полностью' : 'Читать отрывок'}
         </Button>
       </div>
     </div>
