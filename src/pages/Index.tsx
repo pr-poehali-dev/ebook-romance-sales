@@ -117,7 +117,7 @@ const Index = () => {
             </div>
           </div>
           <div className="relative h-[480px] animate-float-up" style={{ animationDelay: '0.3s' }}>
-            <img src={COVER_1} alt="Романы про измены" className="absolute right-10 top-0 w-64 rounded-2xl shadow-2xl rotate-3 hover-lift" />
+            <img src={COVER_MIL} alt="Романы про измены" className="absolute right-10 top-0 w-64 rounded-2xl shadow-2xl rotate-3 hover-lift" />
             <img src={COVER_2} alt="Романы про разводы" className="absolute left-0 top-20 w-56 rounded-2xl shadow-2xl -rotate-6 hover-lift" />
             <img src={COVER_3} alt="Драматические романы" className="absolute right-0 bottom-0 w-52 rounded-2xl shadow-2xl rotate-6 hover-lift" />
           </div>
